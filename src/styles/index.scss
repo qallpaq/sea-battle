@@ -11,11 +11,13 @@
 body {
   width: 100vw;
   height: 100vh;
+  font-family: 'Roboto', sans-serif;
 }
 
 .app {
   width: 1000px;
   margin: 0 auto;
+  padding: 0 50px;
 }
 
 .app-header {
