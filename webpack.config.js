@@ -1,7 +1,6 @@
 const path = require('path');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
@@ -66,12 +65,10 @@ const babelOptions = preset => {
 };
 
 const jsLoaders = () => {
-    const loaders = [{
+    return [{
         loader: 'babel-loader',
         options: babelOptions()
     }];
-
-    return loaders;
 };
 
 const plugins = () => {
@@ -83,12 +80,6 @@ const plugins = () => {
             }
         }),
         new CleanWebpackPlugin(),
-        new CopyWebpackPlugin([
-            {
-                from: path.resolve(__dirname, 'src/favicon.ico'),
-                to: path.resolve(__dirname, 'dist')
-            }
-        ]),
         new MiniCssExtractPlugin({
             filename: filename('css')
         })
