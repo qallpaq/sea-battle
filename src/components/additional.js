@@ -14,8 +14,14 @@ function isUnderPoint(point, element) {
     return left <= x && x <= left + width && top <= y && y <= top + height
 }
 
+function addEventListener(element, ...args) {
+    element.addEventListener(...args)
+    return () => element.removeEventListener(...args)
+}
+
 export {
     getRandomBetween,
     getRandomFrom,
-    isUnderPoint
+    isUnderPoint,
+    addEventListener
 }
