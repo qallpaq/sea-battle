@@ -1,6 +1,6 @@
 import {Scene} from "@/components/Scene"
 import {ShipView} from "@/components/ShipView"
-import {addEventListener, isUnderPoint} from "@/components/additional"
+import {addEventListener, getRandomSeveral, isUnderPoint} from "@/components/additional"
 
 
 const shipDatas = [
@@ -28,6 +28,12 @@ export class PreparationScene extends Scene {
     }
 
     start() {
+        const {player, opponent} = this.app
+
+        opponent.clear()
+        player.removeAllShots()
+        player.ships.forEach(ship => (ship.killed = false))
+
         this.removeEventListeners = []
 
         document
@@ -179,7 +185,17 @@ export class PreparationScene extends Scene {
     }
 
     startComputer(level) {
-        console.log(level)
-        this.app.start('computer')
+        const matrix = this.app.player.matrix
+        const withoutShipItems = matrix.flat().filter(item => !item.ship)
+        let untouchables = []
+
+        if (level === 'simple') {
+        } else if (level === 'middle') {
+            untouchables = getRandomSeveral(withoutShipItems, 20)
+        } else if (level === 'hard') {
+            untouchables = getRandomSeveral(withoutShipItems, 40)
+        }
+
+        this.app.start('computer', untouchables)
     }
 }

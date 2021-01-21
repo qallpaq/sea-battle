@@ -6,8 +6,8 @@ export class Application {
     constructor(scenes = {}) {
         this.mouse = new Mouse(document.body)
 
-        this.player = new BattlefieldView()
-        this.opponent = new BattlefieldView()
+        this.player = new BattlefieldView(true)
+        this.opponent = new BattlefieldView(false)
 
         this.activeScene = null
         this.scenes = {}
@@ -34,7 +34,7 @@ export class Application {
         this.mouse.tick()
     }
 
-    start(sceneName) {
+    start(sceneName, ...args) {
         if (this.activeScene && this.activeScene.name === sceneName) {
             return false
         }
@@ -49,7 +49,7 @@ export class Application {
 
         const scene = this.scenes[sceneName]
         this.activeScene = scene
-        scene.start()
+        scene.start(...args)
 
         return true
     }

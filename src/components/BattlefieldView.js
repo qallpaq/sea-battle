@@ -3,7 +3,7 @@ import {isUnderPoint} from "@/components/additional"
 
 
 export class BattlefieldView extends Battlefield {
-    constructor() {
+    constructor(showShips = true) {
         super()
 
         this.cells = []
@@ -11,6 +11,7 @@ export class BattlefieldView extends Battlefield {
         this.table = this.createTagWithClass('div', 'battlefield-table')
         this.dock = this.createTagWithClass('div', 'battlefield-dock')
         this.polygon = this.createTagWithClass('div', 'battlefield-polygon')
+        this.showShips = showShips
 
         this.root.append(this.table, this.dock, this.polygon)
 
@@ -66,19 +67,21 @@ export class BattlefieldView extends Battlefield {
             return false
         }
 
-        this.dock.append(ship.div)
+        if (this.showShips) {
+            this.dock.append(ship.div)
 
-        if (ship.placed) {
-            const cell = this.cells[y][x]
-            const cellRect = cell.getBoundingClientRect()
-            const rootRect = this.root.getBoundingClientRect()
+            if (ship.placed) {
+                const cell = this.cells[y][x]
+                const cellRect = cell.getBoundingClientRect()
+                const rootRect = this.root.getBoundingClientRect()
 
-            ship.div.style.left = `${cellRect.left - rootRect.left}px`
-            ship.div.style.top = `${cellRect.top - rootRect.top}px`
-        } else {
-            ship.setDirection('row')
-            ship.div.style.left = `${ship.startX}px`
-            ship.div.style.top = `${ship.startY}px`
+                ship.div.style.left = `${cellRect.left - rootRect.left}px`
+                ship.div.style.top = `${cellRect.top - rootRect.top}px`
+            } else {
+                ship.setDirection('row')
+                ship.div.style.left = `${ship.startX}px`
+                ship.div.style.top = `${ship.startY}px`
+            }
         }
 
         return true
@@ -98,5 +101,33 @@ export class BattlefieldView extends Battlefield {
 
     isUnder(point) {
         return isUnderPoint(point, this.root)
+    }
+
+    addShot(shot) {
+        if (!super.addShot(shot)) {
+            return false
+        }
+
+        this.polygon.append(shot.div)
+
+        const cell = this.cells[shot.y][shot.x]
+        const cellRect = cell.getBoundingClientRect()
+        const rootRect = this.root.getBoundingClientRect()
+
+        shot.div.style.left = `${cellRect.left - rootRect.left}px`
+        shot.div.style.top = `${cellRect.top - rootRect.top}px`
+        return true
+    }
+
+    removeShot(shot) {
+        if (!super.removeShot(shot)) {
+            return false
+        }
+
+        if (Array.prototype.includes.call(this.polygon.children, shot.div)) {
+            shot.div.remove()
+        }
+
+        return true
     }
 }

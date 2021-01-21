@@ -1,5 +1,4 @@
 import {getRandomBetween, getRandomFrom} from "@/components/additional"
-import {Ship} from "@/components/Ship"
 
 
 export class Battlefield {
@@ -8,6 +7,16 @@ export class Battlefield {
 
     #matrix = null
     #changed = true
+
+    get loser() {
+        for (const ship of this.ships) {
+            if (!ship.killed) {
+                return false
+            }
+        }
+
+        return true;
+    }
 
     get matrix() {
         if (!this.#changed) {
@@ -21,10 +30,14 @@ export class Battlefield {
 
             for (let x = 0; x < 10; x++) {
                 const item = {
-                    x, y,
+                    x,
+                    y,
                     ship: null,
-                    free: true
-                }
+                    free: true,
+
+                    shoted: false,
+                    wounded: false,
+                };
 
                 row.push(item)
             }
@@ -34,12 +47,12 @@ export class Battlefield {
 
         for (const ship of this.ships) {
             if (!ship.placed) {
-                continue
+                continue;
             }
 
-            const {x, y} = ship
-            const dx = ship.direction === 'row'
-            const dy = ship.direction === 'column'
+            const { x, y } = ship
+            const dx = ship.direction === "row"
+            const dy = ship.direction === "column"
 
             for (let i = 0; i < ship.size; i++) {
                 const cx = x + dx * i
@@ -59,8 +72,18 @@ export class Battlefield {
             }
         }
 
+        for (const { x, y } of this.shots) {
+            const item = matrix[y][x]
+            item.shoted = true;
+
+            if (item.ship) {
+                item.wounded = true
+            }
+        }
+
         this.#matrix = matrix
         this.#changed = false
+
         return this.#matrix
     }
 
@@ -79,7 +102,7 @@ export class Battlefield {
     }
 
     inField(x, y) {
-        const isNumber = n =>
+        const isNumber = (n) =>
             parseInt(n) === n && !isNaN(n) && ![Infinity, -Infinity].includes(n)
 
         if (!isNumber(x) || !isNumber(y)) {
@@ -97,9 +120,8 @@ export class Battlefield {
         this.ships.push(ship)
 
         if (this.inField(x, y)) {
-
-            const dx = ship.direction === 'row'
-            const dy = ship.direction === 'column'
+            const dx = ship.direction === "row"
+            const dy = ship.direction === "column"
 
             let placed = true
 
@@ -109,7 +131,7 @@ export class Battlefield {
 
                 if (!this.inField(cx, cy)) {
                     placed = false
-                    break
+                    break;
                 }
 
                 const item = this.matrix[cy][cx]
@@ -120,7 +142,7 @@ export class Battlefield {
             }
 
             if (placed) {
-                Object.assign(ship, {x, y})
+                Object.assign(ship, { x, y })
             }
         }
 
@@ -153,12 +175,68 @@ export class Battlefield {
         return ships.length
     }
 
-    addShot() {
+    addShot(shot) {
+        for (const { x, y } of this.shots) {
+            if (x === shot.x && y === shot.y) {
+                return false
+            }
+        }
+
+        this.shots.push(shot)
         this.#changed = true
+
+        const matrix = this.matrix
+        const { x, y } = shot
+
+        if (matrix[y][x].ship) {
+            shot.setVariant("wounded")
+
+            const { ship } = matrix[y][x]
+            const dx = ship.direction === "row"
+            const dy = ship.direction === "column"
+
+            let killed = true;
+
+            for (let i = 0; i < ship.size; i++) {
+                const cx = ship.x + dx * i
+                const cy = ship.y + dy * i
+                const item = matrix[cy][cx]
+
+                if (!item.wounded) {
+                    killed = false
+                    break
+                }
+            }
+
+            if (killed) {
+                ship.killed = true
+
+                for (let i = 0; i < ship.size; i++) {
+                    const cx = ship.x + dx * i
+                    const cy = ship.y + dy * i
+
+                    const shot = this.shots.find(
+                        (shot) => shot.x === cx && shot.y === cy
+                    )
+                    shot.setVariant("killed")
+                }
+            }
+        }
+
+        this.#changed = true
+        return true
     }
 
-    removeShot() {
+    removeShot(shot) {
+        if (!this.shots.includes(shot)) {
+            return false
+        }
+
+        const index = this.shots.indexOf(shot)
+        this.shots.splice(index, 1)
+
         this.#changed = true
+        return true
     }
 
     removeAllShots() {
@@ -176,7 +254,7 @@ export class Battlefield {
 
         for (let size = 4; size >= 1; size--) {
             for (let n = 0; n < 5 - size; n++) {
-                const direction = getRandomFrom('row', 'column')
+                const direction = getRandomFrom("row", "column")
                 const ship = new ShipClass(size, direction)
 
                 while (!ship.placed) {
@@ -188,5 +266,10 @@ export class Battlefield {
                 }
             }
         }
+    }
+
+    clear() {
+        this.removeAllShots()
+        this.removeAllShips()
     }
 }
